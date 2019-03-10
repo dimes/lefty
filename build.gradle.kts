@@ -26,9 +26,10 @@ dependencies {
     kapt(deps.daggerCompiler)
 
     implementation(deps.dagger)
-    implementation(deps.kotlinSdk)
     implementation(deps.rxjava)
 
+    implementation(project(":base"))
+    implementation(project(":builtin"))
     implementation(project(":pipeline"))
 
     runtime(deps.slf4jSimple)

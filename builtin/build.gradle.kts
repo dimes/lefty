@@ -10,6 +10,6 @@ repositories {
 }
 
 dependencies {
-    api(deps.slf4j)
-    api(deps.kotlinSdk)
+    implementation(project(":base"))
+    implementation(project(":pipeline"))
 }

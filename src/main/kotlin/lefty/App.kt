@@ -3,9 +3,9 @@
  */
 package lefty
 
+import lefty.builtin.git.GIT_PLUGIN
 import lefty.dagger.DaggerApplicationComponent
 import lefty.pipeline.Specification
-import lefty.pipeline.Step
 import lefty.pipeline.dagger.PipelineComponent
 import lefty.pipeline.dagger.PipelineModule
 import java.nio.file.Paths
@@ -23,13 +23,7 @@ class App @Inject constructor(
                                 Paths.get("./test"),
                                 Specification(
                                         listOf(
-                                                Step(
-                                                        "the image",
-                                                        listOf(
-                                                                "command 1",
-                                                                "command 2"
-                                                        )
-                                                )
+                                                GIT_PLUGIN
                                         )
                                 )
                         )

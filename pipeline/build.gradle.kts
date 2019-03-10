@@ -15,7 +15,6 @@ dependencies {
     implementation(project(":base"))
 
     implementation(deps.dagger)
-    implementation(deps.kotlinSdk)
     implementation(deps.rxjava)
     implementation(deps.rxkotlin)
 
