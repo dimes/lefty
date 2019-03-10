@@ -3,29 +3,39 @@
  */
 package lefty
 
-import lefty.builtin.git.GIT_PLUGIN
+import com.fasterxml.jackson.databind.ObjectMapper
 import lefty.dagger.DaggerApplicationComponent
-import lefty.pipeline.Specification
 import lefty.pipeline.dagger.PipelineComponent
 import lefty.pipeline.dagger.PipelineModule
+import lefty.pipeline.serialization.SerializedSpecification
+import lefty.serialization.dagger.ForYaml
 import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Provider
 
 class App @Inject constructor(
+        @ForYaml private val yamlObjectMapper: ObjectMapper,
         private val pipelineBuilder: Provider<PipelineComponent.Builder>
 ) {
+    companion object {
+        private const val TEST_YAML = """
+steps:
+  - type: builtin
+    name: git
+    environment:
+      GIT_REPO: https://github.com/dimes/lefty.git
+      GIT_BRANCH: master
+        """
+    }
+
     fun run() {
+        val yamlSpecification = yamlObjectMapper.readValue(TEST_YAML, SerializedSpecification::class.java)
         val pipeline = pipelineBuilder
                 .get()
                 .pipelineModule(
                         PipelineModule(
                                 Paths.get("./test"),
-                                Specification(
-                                        listOf(
-                                                GIT_PLUGIN
-                                        )
-                                )
+                                yamlSpecification.toSpecification()
                         )
                 )
                 .build()
@@ -34,7 +44,7 @@ class App @Inject constructor(
     }
 }
 
-fun main(args: Array<String>) {
+fun main() {
     val applicationComponent = DaggerApplicationComponent
             .builder()
             .build()
