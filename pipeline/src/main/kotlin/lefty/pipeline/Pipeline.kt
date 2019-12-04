@@ -2,10 +2,7 @@ package lefty.pipeline
 
 import io.reactivex.Completable
 import io.reactivex.Flowable
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.rxkotlin.addTo
 import io.reactivex.schedulers.Schedulers
-import lefty.pipeline.build.storage.BuildRepository
 import lefty.pipeline.dagger.pipeline.ForPipeline
 import lefty.pipeline.logs.LogEntry
 import lefty.pipeline.logs.LogType
@@ -17,8 +14,6 @@ import java.nio.file.Path
 import javax.inject.Inject
 
 class Pipeline @Inject constructor(
-        private val buildRepository: BuildRepository,
-        @ForPipeline private val disposable: CompositeDisposable,
         @ForPipeline private val workingDirectory: Path,
         @ForPipeline private val specification: Specification
 ) {
@@ -26,10 +21,10 @@ class Pipeline @Inject constructor(
         private val LOG = LoggerFactory.getLogger(Pipeline::class.java)
     }
 
-    fun run() {
+    fun run(): Completable {
         LOG.info("Starting pipeline in directory $workingDirectory")
 
-        Flowable
+        return Flowable
                 .fromIterable(specification.steps)
                 .concatMapCompletable { step ->
                     LOG.info("Running ${step.image} with commands ${step.commands}")
@@ -68,14 +63,12 @@ class Pipeline @Inject constructor(
                         if (result != 0) {
                             throw RuntimeException("Command failed with status code $result")
                         }
+
+                        LOG.info("Pipeline completed successfully")
                     }.doOnDispose {
                         logs.dispose()
                         process.destroyForcibly()
                     }
-                }.subscribe({
-                    LOG.info("Pipeline done")
-                }, { err ->
-                    LOG.error("Error executing pipeline", err)
-                }).addTo(disposable)
+                }
     }
 }

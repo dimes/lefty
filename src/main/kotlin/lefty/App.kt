@@ -8,6 +8,7 @@ import lefty.dagger.DaggerApplicationComponent
 import lefty.pipeline.dagger.build.BuildComponent
 import lefty.pipeline.serialization.SerializedSpecification
 import lefty.serialization.dagger.ForYaml
+import org.slf4j.LoggerFactory
 import javax.inject.Inject
 import javax.inject.Provider
 
@@ -16,6 +17,7 @@ class App @Inject constructor(
         private val buildBuilder: Provider<BuildComponent.Builder>
 ) {
     companion object {
+        private val LOG = LoggerFactory.getLogger(App::class.java)
         private const val TEST_YAML = """
 steps:
   - type: builtin
@@ -28,12 +30,17 @@ steps:
 
     fun run() {
         val yamlSpecification = yamlObjectMapper.readValue(TEST_YAML, SerializedSpecification::class.java)
-        val build = buildBuilder
+        buildBuilder
                 .get()
                 .bindsSpecifications(listOf(yamlSpecification.toSpecification()))
                 .build()
                 .build()
-        build.run()
+                .run()
+                .subscribe({
+                    LOG.info("Successfully finished build")
+                }, { err ->
+                    LOG.info("Error during build", err)
+                })
     }
 }
 
