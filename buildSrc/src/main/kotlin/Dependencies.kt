@@ -2,7 +2,7 @@ import org.gradle.kotlin.dsl.kotlin
 import org.gradle.plugin.use.PluginDependenciesSpec
 
 object deps {
-    const val kotlinVersion = "1.3.20"
+    const val kotlinVersion = "1.3.61"
     const val kotlinSdk = "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     const val kotlinTest = "org.jetbrains.kotlin:kotlin-test"
     const val kotlinTestJunit = "org.jetbrains.kotlin:kotlin-test-junit"

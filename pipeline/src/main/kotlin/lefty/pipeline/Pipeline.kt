@@ -1,10 +1,16 @@
 package lefty.pipeline
 
+import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
+import io.reactivex.schedulers.Schedulers
 import lefty.pipeline.dagger.ForPipeline
+import lefty.pipeline.logs.LogEntry
+import lefty.pipeline.logs.LogType
 import org.slf4j.LoggerFactory
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import java.lang.RuntimeException
 import java.nio.file.Path
 import javax.inject.Inject
@@ -23,7 +29,7 @@ class Pipeline @Inject constructor(
 
         Flowable
                 .fromIterable(specification.steps)
-                .map { step ->
+                .concatMapCompletable { step ->
                     LOG.info("Running ${step.image} with commands ${step.commands}")
                     val process = ProcessBuilder(
                             "docker",
@@ -35,13 +41,34 @@ class Pipeline @Inject constructor(
                             }.flatten().toTypedArray(),
                             step.image,
                             "sh", "-c", step.commands.joinToString(";")
-                    )
-                            .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-                            .redirectError(ProcessBuilder.Redirect.INHERIT)
-                            .start()
-                    val result = process.waitFor()
-                    if (result != 0) {
-                        throw RuntimeException("Command failed")
+                    ).start()
+
+                    val stdout = Flowable
+                            .fromIterable(
+                                    Iterable(BufferedReader(InputStreamReader(process.inputStream)).lines()::iterator))
+                            .map { LogEntry(LogType.STDOUT, it) }
+
+                    val stderr = Flowable
+                            .fromIterable(
+                                    Iterable(BufferedReader(InputStreamReader(process.errorStream)).lines()::iterator))
+                            .map { LogEntry(LogType.STDERR, it) }
+
+                    val logs = Flowable
+                            .merge(stdout, stderr)
+                            .subscribeOn(Schedulers.io())
+                            .subscribe {
+                                LOG.info("${it.type} ${it.line}")
+                            }
+
+                    Completable.fromAction {
+                        LOG.info("Waiting for process to finish")
+                        val result = process.waitFor()
+                        if (result != 0) {
+                            throw RuntimeException("Command failed with status code $result")
+                        }
+                    }.doOnDispose {
+                        logs.dispose()
+                        process.destroyForcibly()
                     }
                 }.subscribe({
                     LOG.info("Pipeline done")
