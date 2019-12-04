@@ -5,7 +5,8 @@ import io.reactivex.Flowable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.addTo
 import io.reactivex.schedulers.Schedulers
-import lefty.pipeline.dagger.ForPipeline
+import lefty.pipeline.build.storage.BuildRepository
+import lefty.pipeline.dagger.pipeline.ForPipeline
 import lefty.pipeline.logs.LogEntry
 import lefty.pipeline.logs.LogType
 import org.slf4j.LoggerFactory
@@ -16,6 +17,7 @@ import java.nio.file.Path
 import javax.inject.Inject
 
 class Pipeline @Inject constructor(
+        private val buildRepository: BuildRepository,
         @ForPipeline private val disposable: CompositeDisposable,
         @ForPipeline private val workingDirectory: Path,
         @ForPipeline private val specification: Specification

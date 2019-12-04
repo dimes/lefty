@@ -5,17 +5,15 @@ package lefty
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import lefty.dagger.DaggerApplicationComponent
-import lefty.pipeline.dagger.PipelineComponent
-import lefty.pipeline.dagger.PipelineModule
+import lefty.pipeline.dagger.build.BuildComponent
 import lefty.pipeline.serialization.SerializedSpecification
 import lefty.serialization.dagger.ForYaml
-import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Provider
 
 class App @Inject constructor(
         @ForYaml private val yamlObjectMapper: ObjectMapper,
-        private val pipelineBuilder: Provider<PipelineComponent.Builder>
+        private val buildBuilder: Provider<BuildComponent.Builder>
 ) {
     companion object {
         private const val TEST_YAML = """
@@ -30,17 +28,12 @@ steps:
 
     fun run() {
         val yamlSpecification = yamlObjectMapper.readValue(TEST_YAML, SerializedSpecification::class.java)
-        val pipeline = pipelineBuilder
+        val build = buildBuilder
                 .get()
-                .pipelineModule(
-                        PipelineModule(
-                                Paths.get("./test"),
-                                yamlSpecification.toSpecification()
-                        )
-                )
+                .bindsSpecifications(listOf(yamlSpecification.toSpecification()))
                 .build()
-                .pipeline()
-        pipeline.run()
+                .build()
+        build.run()
     }
 }
 
