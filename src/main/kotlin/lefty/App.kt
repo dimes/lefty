@@ -19,6 +19,7 @@ class App @Inject constructor(
     companion object {
         private val LOG = LoggerFactory.getLogger(App::class.java)
         private const val TEST_YAML = """
+name: clone
 steps:
   - type: builtin
     name: git

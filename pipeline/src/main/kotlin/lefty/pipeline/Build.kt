@@ -18,12 +18,14 @@ class Build @Inject constructor(
     fun run(): Completable {
         return buildRepository
                 .newStoredBuild(specifications)
-                .flatMapCompletable {
-                    Completable.merge(specifications.map { specification ->
+                .flatMapCompletable { build ->
+                    Completable.merge(specifications.mapIndexed { index, specification ->
                         pipelineBuilder
                                 .get()
+                                .bindsBuild(build)
                                 .bindsWorkingDirectory(Paths.get("./test"))
                                 .bindsSpecification(specification)
+                                .bindsPipelineInfo(PipelineInfo(index))
                                 .build()
                                 .pipeline()
                                 .run()
