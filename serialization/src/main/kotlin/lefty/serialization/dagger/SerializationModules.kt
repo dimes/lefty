@@ -8,7 +8,7 @@ import javax.inject.Singleton
 
 class SerializationModules {
     @Module
-    class ApplicationModule {
+    class SingletonModule {
         @ForYaml
         @Provides
         @Singleton

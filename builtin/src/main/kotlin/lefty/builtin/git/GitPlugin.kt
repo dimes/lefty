@@ -4,7 +4,7 @@ import lefty.pipeline.Step
 
 fun gitPlugin(environment: Map<String, String>): Step {
     return Step(
-            "a8bd0e37cc16",
+            "f812fa768f4a",
             environment,
             listOf(
                     "[ \"$(ls -A .)\" ] || git clone \"\$CUSTOM_GIT_REPO\" .",
