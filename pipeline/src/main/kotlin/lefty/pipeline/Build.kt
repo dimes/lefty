@@ -1,6 +1,7 @@
 package lefty.pipeline
 
 import io.reactivex.Completable
+import lefty.pipeline.build.specfetcher.SpecificationProvider
 import lefty.pipeline.build.storage.BuildRepository
 import lefty.pipeline.dagger.build.BuildScope
 import lefty.pipeline.dagger.build.ForBuild
@@ -13,14 +14,15 @@ import javax.inject.Provider
 class Build @Inject constructor(
         private val buildRepository: BuildRepository,
         @ForBuild private val workingDirectory: Path,
-        @ForBuild private val specifications: List<Specification>,
+        @ForBuild private val specificationProvider: SpecificationProvider,
         private val pipelineBuilder: Provider<PipelineComponent.Builder>
 ) {
     fun run(): Completable {
-        return buildRepository
-                .newStoredBuild(specifications)
+        return specificationProvider
+                .getSpecifications()
+                .flatMap(buildRepository::newStoredBuild)
                 .flatMapCompletable { build ->
-                    Completable.merge(specifications.mapIndexed { index, specification ->
+                    Completable.merge(build.specifications.mapIndexed { index, specification ->
                         pipelineBuilder
                                 .get()
                                 .bindsBuild(build)

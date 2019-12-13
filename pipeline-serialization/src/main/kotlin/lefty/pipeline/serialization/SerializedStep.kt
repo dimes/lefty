@@ -34,11 +34,11 @@ interface SerializedStep {
 
     class CustomSerializedStep @JsonCreator constructor(
             @JsonProperty("image") val image: String,
-            @JsonProperty("environment") val environment: Map<String, String>,
+            @JsonProperty("environment") val environment: Map<String, String>?,
             @JsonProperty("commands") val commands: List<String>
     ) : SerializedStep {
         override fun toPipelineStep(): Step {
-            return Step(image, environment, commands)
+            return Step(image, environment ?: emptyMap(), commands)
         }
     }
 }
