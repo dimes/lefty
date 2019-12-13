@@ -9,6 +9,7 @@ import lefty.pipeline.dagger.build.BuildComponent
 import lefty.pipeline.serialization.SerializedSpecification
 import lefty.serialization.dagger.ForYaml
 import org.slf4j.LoggerFactory
+import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Provider
 
@@ -33,6 +34,7 @@ steps:
         val yamlSpecification = yamlObjectMapper.readValue(TEST_YAML, SerializedSpecification::class.java)
         buildBuilder
                 .get()
+                .bindsWorkingDirectory(Paths.get("build/tmp/test"))
                 .bindsSpecifications(listOf(yamlSpecification.toSpecification()))
                 .build()
                 .build()
